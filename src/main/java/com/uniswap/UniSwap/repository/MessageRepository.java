@@ -11,6 +11,9 @@ public interface MessageRepository extends JpaRepository<Message, Integer> {
     List<Message> findBySenderUserId(Integer senderId);
     List<Message> findByReceiverUserId(Integer receiverId);
     
-    @Query("SELECT m FROM Message m WHERE (m.sender.userId = :userId1 AND m.receiver.userId = :userId2) OR (m.sender.userId = :userId2 AND m.receiver.userId = :userId1) ORDER BY m.sentTime")
-    List<Message> findConversation(Integer userId1, Integer userId2);
+    @Query("SELECT m FROM Message m WHERE (m.sender.userId = :senderId AND m.receiver.userId = :receiverId) OR (m.sender.userId = :receiverId AND m.receiver.userId = :senderId) ORDER BY m.sentTime")
+    List<Message> findConversationBetweenUsers(Integer senderId, Integer receiverId);
+    
+    @Query("SELECT m FROM Message m WHERE m.sender.userId = :userId OR m.receiver.userId = :userId ORDER BY m.sentTime DESC")
+    List<Message> findBySenderUserIdOrReceiverUserId(Integer userId, Integer userId2);
 }

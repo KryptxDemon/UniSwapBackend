@@ -12,4 +12,5 @@ public interface ItemRepository extends JpaRepository<Item, Integer> {
     List<Item> findByPostPostId(Integer postId);
     List<Item> findByItemType(String itemType);
     List<Item> findByStatus(String status);
+    List<Item> findByPostUserUserId(Integer userId);
 }
