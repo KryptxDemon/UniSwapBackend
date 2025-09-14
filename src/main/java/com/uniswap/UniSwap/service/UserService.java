@@ -27,7 +27,13 @@ public class UserService {
 
     @Transactional(readOnly = true)
     public Optional<User> getUserByEmail(String email) {
-        return userRepository.findByEmail(email);
+        System.out.println("UserService: Looking up user by email: " + email);
+        Optional<User> user = userRepository.findByEmail(email);
+        System.out.println("UserService: User found: " + user.isPresent());
+        if (user.isPresent()) {
+            System.out.println("UserService: User details - ID: " + user.get().getUserId() + ", Username: " + user.get().getUsername());
+        }
+        return user;
     }
 
     @Transactional
@@ -46,9 +52,20 @@ public class UserService {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
-        user.setUsername(userDetails.getUsername());
+        // Update basic profile fields
+        if (userDetails.getUsername() != null) {
+            user.setUsername(userDetails.getUsername());
+        }
+        if (userDetails.getPassword() != null) {
+            user.setPassword(userDetails.getPassword());
+        }
+        if (userDetails.getBio() != null) {
+            user.setBio(userDetails.getBio());
+        }
+        if (userDetails.getProfilePicture() != null) {
+            user.setProfilePicture(userDetails.getProfilePicture());
+        }
         // Don't update email and student ID as they are unique identifiers
-        user.setPassword(userDetails.getPassword());
         
         return userRepository.save(user);
     }

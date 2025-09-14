@@ -1,10 +1,11 @@
+// src/main/java/com/uniswap/UniSwap/dto/AuthResponse.java
 package com.uniswap.UniSwap.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-@AllArgsConstructor
+@NoArgsConstructor
 public class AuthResponse {
     private String token;
     private String type = "Bearer";

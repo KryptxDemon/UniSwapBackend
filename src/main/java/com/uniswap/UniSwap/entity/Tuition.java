@@ -1,9 +1,13 @@
+// src/main/java/com/uniswap/UniSwap/entity/Tuition.java
 package com.uniswap.UniSwap.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +16,7 @@ import java.util.List;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties({"hibernateLazyInitializer","handler"})
 public class Tuition {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,6 +44,7 @@ public class Tuition {
     private Location location;
 
     @OneToMany(mappedBy = "tuition", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<SwapRequest> swapRequests = new ArrayList<>();
 
     @ManyToMany

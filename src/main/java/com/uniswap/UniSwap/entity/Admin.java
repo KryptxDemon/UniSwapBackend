@@ -1,5 +1,7 @@
+// src/main/java/com/uniswap/UniSwap/entity/Admin.java
 package com.uniswap.UniSwap.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,5 +29,6 @@ public class Admin {
     private String adminPass;
 
     @OneToMany(mappedBy = "admin", cascade = CascadeType.ALL)
+    @JsonIgnore
     private List<Post> posts = new ArrayList<>();
 }
