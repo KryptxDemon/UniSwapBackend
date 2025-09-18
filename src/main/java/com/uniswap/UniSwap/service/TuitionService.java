@@ -1,16 +1,13 @@
 package com.uniswap.UniSwap.service;
 
 import com.uniswap.UniSwap.entity.Tuition;
-import com.uniswap.UniSwap.entity.Post;
 import com.uniswap.UniSwap.entity.User;
 import com.uniswap.UniSwap.repository.TuitionRepository;
-import com.uniswap.UniSwap.repository.PostRepository;
 import com.uniswap.UniSwap.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -20,14 +17,9 @@ public class TuitionService {
 
     @Autowired
     private TuitionRepository tuitionRepository;
-
+    
     @Autowired
-    private PostRepository postRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    public List<Tuition> getAllTuitions() {
+    private UserRepository userRepository;    public List<Tuition> getAllTuitions() {
         return tuitionRepository.findAll();
     }
 
@@ -36,11 +28,7 @@ public class TuitionService {
     }
 
     public List<Tuition> getTuitionsByUser(Integer userId) {
-        return tuitionRepository.findAll().stream()
-                .filter(tuition -> tuition.getPost() != null && 
-                       tuition.getPost().getUser() != null && 
-                       tuition.getPost().getUser().getUserId().equals(userId))
-                .toList();
+        return tuitionRepository.findByUserUserId(userId);
     }
 
     public List<Tuition> getTuitionsByStatus(String status) {
@@ -51,8 +39,8 @@ public class TuitionService {
         return tuitionRepository.findBySubject(subject);
     }
 
-    public List<Tuition> getTuitionsByLocation(Integer locationId) {
-        return tuitionRepository.findByLocationLocationId(locationId);
+    public List<Tuition> getTuitionsByLocation(String location) {
+        return tuitionRepository.findByLocation(location);
     }
 
     public List<Tuition> getTuitionsBySalaryRange(Integer maxSalary) {
@@ -60,23 +48,13 @@ public class TuitionService {
     }
 
     public Tuition createTuition(Tuition tuition, Integer userId) {
-        // Create a new post for the tuition
-        Post post = new Post();
-        post.setPostTime(LocalDateTime.now());
-        
-        // Set the user for the post
+        // Set the user relationship
         Optional<User> userOpt = userRepository.findById(userId);
         if (userOpt.isPresent()) {
-            post.setUser(userOpt.get());
+            tuition.setUser(userOpt.get());
         } else {
             throw new RuntimeException("User not found with id: " + userId);
         }
-        
-        // Save the post first
-        post = postRepository.save(post);
-        
-        // Associate the post with the tuition
-        tuition.setPost(post);
         
         // Set default status if not provided
         if (tuition.getTStatus() == null) {

@@ -16,7 +16,6 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,7 +27,6 @@ public class AuthController {
     @Autowired private UserService userService;
     @Autowired private PasswordEncoder passwordEncoder;
     @Autowired private JwtTokenUtil jwtTokenUtil;
-    @Autowired private UserDetailsService userDetailsService;
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
@@ -55,16 +53,57 @@ public class AuthController {
             user.setPassword(passwordEncoder.encode(registerRequest.getPassword()));
             user.setStudentId(registerRequest.getStudentId());
 
-            User savedUser = userService.createUser(user);
+            User savedUser = userService.createUserWithPhone(user, registerRequest.getPhone());
 
-            UserDetails ud = userDetailsService.loadUserByUsername(savedUser.getEmail());
-            String jwt = jwtTokenUtil.generateToken(ud);
-
-            return ResponseEntity.ok(new AuthResponse(jwt, savedUser.getUserId(),
+            // Don't auto-login after registration, just return success message
+            return ResponseEntity.ok(new AuthResponse(null, savedUser.getUserId(),
                     savedUser.getDisplayUsername(), savedUser.getEmail()));
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                     .body("Registration failed: " + e.getMessage());
         }
+    }
+
+    @GetMapping("/check-username/{username}")
+    public ResponseEntity<?> checkUsernameAvailability(@PathVariable String username) {
+        boolean exists = userService.existsByUsername(username);
+        if (exists) {
+            // Generate suggestions
+            String suggestion = userService.generateUsernameSuggestion(username);
+            return ResponseEntity.ok().body(new UsernameCheckResponse(false, suggestion));
+        }
+        return ResponseEntity.ok().body(new UsernameCheckResponse(true, null));
+    }
+
+    @GetMapping("/check-email/{email}")
+    public ResponseEntity<?> checkEmailAvailability(@PathVariable String email) {
+        boolean exists = userService.existsByEmail(email);
+        return ResponseEntity.ok().body(new EmailCheckResponse(!exists));
+    }
+
+    // Helper classes for responses
+    public static class UsernameCheckResponse {
+        public boolean available;
+        public String suggestion;
+
+        public UsernameCheckResponse(boolean available, String suggestion) {
+            this.available = available;
+            this.suggestion = suggestion;
+        }
+
+        // Getters
+        public boolean isAvailable() { return available; }
+        public String getSuggestion() { return suggestion; }
+    }
+
+    public static class EmailCheckResponse {
+        public boolean available;
+
+        public EmailCheckResponse(boolean available) {
+            this.available = available;
+        }
+
+        // Getter
+        public boolean isAvailable() { return available; }
     }
 }

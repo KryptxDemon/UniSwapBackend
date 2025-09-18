@@ -15,6 +15,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/uploads")
@@ -67,11 +69,10 @@ public class UploadController {
             Path filePath = uploadPath.resolve(uniqueFilename);
             Files.copy(file.getInputStream(), filePath);
 
-            // Return the URL that can be accessed by the frontend
-            String fileUrl = "/api/uploads/files/" + uniqueFilename;
+            // Return just the filename (frontend will construct the full URL)
             
             response.put("success", true);
-            response.put("url", fileUrl);
+            response.put("url", uniqueFilename);
             response.put("filename", uniqueFilename);
             response.put("originalName", originalFilename);
             response.put("size", file.getSize());
@@ -103,6 +104,34 @@ public class UploadController {
                     
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @GetMapping("/list")
+    public ResponseEntity<Map<String, Object>> listUploadedFiles() {
+        Map<String, Object> response = new HashMap<>();
+        
+        try {
+            Path uploadPath = Paths.get(uploadDir);
+            
+            if (!Files.exists(uploadPath)) {
+                response.put("files", List.of());
+                return ResponseEntity.ok(response);
+            }
+            
+            List<String> filenames = Files.list(uploadPath)
+                    .filter(Files::isRegularFile)
+                    .map(Path::getFileName)
+                    .map(Path::toString)
+                    .filter(this::isValidImageFile)
+                    .collect(Collectors.toList());
+            
+            response.put("files", filenames);
+            return ResponseEntity.ok(response);
+            
+        } catch (IOException e) {
+            response.put("error", "Failed to list files: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(response);
         }
     }
 

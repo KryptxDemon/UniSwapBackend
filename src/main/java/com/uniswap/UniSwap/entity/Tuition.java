@@ -5,11 +5,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "Tuition")
@@ -22,36 +20,49 @@ public class Tuition {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer tuitionId;
 
+    @Column(nullable = false)
     private Integer salary;
 
+    @Column(nullable = false)
     private Integer daysWeek;
 
-    @Column(length = 50)
+    @Column(length = 50, nullable = false)
     private String clazz;
 
-    @Column(length = 100)
+    @Column(length = 100, nullable = false)
     private String subject;
 
-    @Column(length = 50)
+    @Column(length = 50, nullable = false)
     private String tStatus;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id")
-    private Post post;
+    @Column
+    private Boolean canSwap = false; // Whether tuition exchange is available
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "location_id")
-    private Location location;
+    @Column(columnDefinition = "TEXT")
+    private String swapDetails; // Details about what they want in exchange
 
-    @OneToMany(mappedBy = "tuition", cascade = CascadeType.ALL)
-    @JsonIgnore
-    private List<SwapRequest> swapRequests = new ArrayList<>();
+    @Column(length = 20, nullable = false)
+    private String contactPhone; // Contact phone number
 
-    @ManyToMany
-    @JoinTable(
-            name = "Message_Concerns_Tuition",
-            joinColumns = @JoinColumn(name = "tuition_id"),
-            inverseJoinColumns = @JoinColumn(name = "message_id")
-    )
-    private List<Message> messages = new ArrayList<>();
+    @Column(length = 50)
+    private String tutorPreference; // male, female, both
+
+    @Column(columnDefinition = "TEXT")
+    private String addressUrl; // Meeting address or Google Maps link
+
+    @Column(length = 100)
+    private String location; // Simple location string
+
+    @Column
+    private LocalDateTime createdAt;
+
+    // User relationship
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id")
+    private User user;
+
+    @PrePersist
+    void onCreate() {
+        if (createdAt == null) createdAt = LocalDateTime.now();
+    }
 }

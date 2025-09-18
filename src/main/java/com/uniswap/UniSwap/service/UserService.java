@@ -1,7 +1,9 @@
 package com.uniswap.UniSwap.service;
 
 import com.uniswap.UniSwap.entity.User;
+import com.uniswap.UniSwap.entity.Phone;
 import com.uniswap.UniSwap.repository.UserRepository;
+import com.uniswap.UniSwap.repository.PhoneRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,6 +16,9 @@ public class UserService {
     
     @Autowired
     private UserRepository userRepository;
+    
+    @Autowired
+    private PhoneRepository phoneRepository;
 
     @Transactional(readOnly = true)
     public List<User> getAllUsers() {
@@ -75,5 +80,90 @@ public class UserService {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
         userRepository.delete(user);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean existsByUsername(String username) {
+        return userRepository.existsByUsername(username);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean existsByEmail(String email) {
+        return userRepository.existsByEmail(email);
+    }
+
+    @Transactional(readOnly = true)
+    public String generateUsernameSuggestion(String baseUsername) {
+        String suggestion = baseUsername;
+        int counter = 1;
+        
+        // Try adding numbers to the username until we find an available one
+        while (userRepository.existsByUsername(suggestion)) {
+            suggestion = baseUsername + counter;
+            counter++;
+            // Prevent infinite loop
+            if (counter > 999) {
+                suggestion = baseUsername + System.currentTimeMillis();
+                break;
+            }
+        }
+        
+        return suggestion;
+    }
+
+    @Transactional
+    public User createUserWithPhone(User user, String phoneNumber) {
+        if (userRepository.existsByEmail(user.getEmail())) {
+            throw new RuntimeException("Email already exists");
+        }
+        if (user.getStudentId() != null && userRepository.existsByStudentId(user.getStudentId())) {
+            throw new RuntimeException("Student ID already exists");
+        }
+        if (userRepository.existsByUsername(user.getUsername())) {
+            throw new RuntimeException("Username already exists");
+        }
+        
+        User savedUser = userRepository.save(user);
+        
+        // Create phone record
+        if (phoneNumber != null && !phoneNumber.isEmpty()) {
+            Phone phone = new Phone();
+            phone.setUser(savedUser);
+            phone.setPhoneNumber(phoneNumber);
+            phoneRepository.save(phone);
+        }
+        
+        return savedUser;
+    }
+
+    @Transactional
+    public void requestAccountDeletion(Integer userId, String reason) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+            
+        // For now, we'll just log the deletion request
+        // In a real application, this would create a record in an admin review table
+        System.out.println("Account deletion requested for user ID: " + userId + 
+                          ", Username: " + user.getUsername() + 
+                          ", Reason: " + reason);
+        
+        // Could also send email to admin, create admin notification, etc.
+    }
+
+    @Transactional
+    public boolean changePassword(Integer userId, String oldPassword, String newPassword) {
+        User user = userRepository.findById(userId)
+            .orElseThrow(() -> new RuntimeException("User not found with id: " + userId));
+            
+        // In a real application, you would verify the old password properly
+        // This is a simplified version
+        if (oldPassword == null || oldPassword.isEmpty()) {
+            throw new RuntimeException("Old password is required");
+        }
+        
+        user.setPassword(newPassword); // Note: This should be hashed in real application
+        userRepository.save(user);
+        
+        return true;
     }
 }

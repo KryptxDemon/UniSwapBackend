@@ -5,12 +5,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "Messages")
@@ -23,28 +20,26 @@ public class Message {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer messageId;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String text;
 
+    @Column(nullable = false)
     private LocalDateTime sentTime;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "sender_id")
-    @JsonIgnore
     private User sender;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "receiver_id")
-    @JsonIgnore
     private User receiver;
 
-    @ManyToMany(mappedBy = "messages")
-    @JsonIgnore
-    private List<Item> items = new ArrayList<>();
+    // Simple reference fields instead of complex relationships
+    @Column(length = 50)
+    private String concernType; // item, tuition, general
 
-    @ManyToMany(mappedBy = "messages")
-    @JsonIgnore
-    private List<Tuition> tuitions = new ArrayList<>();
+    @Column
+    private Integer concernId; // ID of the item/tuition being discussed
 
     @PrePersist
     void onCreate() {

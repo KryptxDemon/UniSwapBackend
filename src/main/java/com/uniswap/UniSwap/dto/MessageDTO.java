@@ -23,5 +23,6 @@ public class MessageDTO {
         private Integer userId;
         private String displayUsername;
         private String email;
+        private String profilePicture;
     }
 }

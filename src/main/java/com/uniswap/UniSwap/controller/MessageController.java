@@ -5,12 +5,10 @@ import com.uniswap.UniSwap.dto.MessageDTO;
 import com.uniswap.UniSwap.dto.ConversationDTO;
 import com.uniswap.UniSwap.entity.Message;
 import com.uniswap.UniSwap.entity.User;
-import com.uniswap.UniSwap.entity.Item;
 import com.uniswap.UniSwap.service.MessageService;
 import com.uniswap.UniSwap.service.UserService;
 import com.uniswap.UniSwap.service.ItemService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -59,6 +57,7 @@ public class MessageController {
                     conversation.setPartnerId(partnerId);
                     conversation.setPartnerUsername(partner != null ? partner.getDisplayUsername() : "Unknown");
                     conversation.setPartnerEmail(partner != null ? partner.getEmail() : "");
+                    conversation.setPartnerProfilePicture(partner != null ? partner.getProfilePicture() : null);
                     conversation.setLastMessage(lastMessage != null ? lastMessage.getText() : "");
                     conversation.setLastMessageTime(lastMessage != null ? lastMessage.getSentTime() : null);
                     conversation.setMessageCount(messages.size());
@@ -123,9 +122,11 @@ public class MessageController {
             message.setText(text);
 
             if (itemId != null) {
-                Item item = itemService.getItemById(itemId)
+                // Verify item exists
+                itemService.getItemById(itemId)
                     .orElseThrow(() -> new RuntimeException("Item not found"));
-                message.getItems().add(item);
+                message.setConcernType("item");
+                message.setConcernId(itemId);
             }
 
             Message savedMessage = messageService.sendMessage(message);
@@ -174,6 +175,7 @@ public class MessageController {
         senderDTO.setUserId(message.getSender().getUserId());
         senderDTO.setDisplayUsername(message.getSender().getDisplayUsername());
         senderDTO.setEmail(message.getSender().getEmail());
+        senderDTO.setProfilePicture(message.getSender().getProfilePicture());
         dto.setSender(senderDTO);
         
         // Convert receiver
@@ -181,6 +183,7 @@ public class MessageController {
         receiverDTO.setUserId(message.getReceiver().getUserId());
         receiverDTO.setDisplayUsername(message.getReceiver().getDisplayUsername());
         receiverDTO.setEmail(message.getReceiver().getEmail());
+        receiverDTO.setProfilePicture(message.getReceiver().getProfilePicture());
         dto.setReceiver(receiverDTO);
         
         return dto;

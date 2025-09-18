@@ -1,6 +1,5 @@
 package com.uniswap.UniSwap.service;
 
-import com.uniswap.UniSwap.entity.User;
 import com.uniswap.UniSwap.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;

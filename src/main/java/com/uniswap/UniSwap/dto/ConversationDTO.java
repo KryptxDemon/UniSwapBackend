@@ -13,6 +13,7 @@ public class ConversationDTO {
     private Integer partnerId;
     private String partnerUsername;
     private String partnerEmail;
+    private String partnerProfilePicture;
     private String lastMessage;
     private LocalDateTime lastMessageTime;
     private Integer messageCount;

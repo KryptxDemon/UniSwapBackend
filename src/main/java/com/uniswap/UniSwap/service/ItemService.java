@@ -1,13 +1,9 @@
 package com.uniswap.UniSwap.service;
 
 import com.uniswap.UniSwap.entity.Item;
-import com.uniswap.UniSwap.entity.Post;
 import com.uniswap.UniSwap.entity.User;
 import com.uniswap.UniSwap.repository.ItemRepository;
-import com.uniswap.UniSwap.repository.PostRepository;
 import com.uniswap.UniSwap.repository.UserRepository;
-import com.uniswap.UniSwap.repository.CategoryRepository;
-import com.uniswap.UniSwap.repository.LocationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,16 +18,7 @@ public class ItemService {
     private ItemRepository itemRepository;
     
     @Autowired
-    private PostRepository postRepository;
-    
-    @Autowired
     private UserRepository userRepository;
-    
-    @Autowired
-    private CategoryRepository categoryRepository;
-    
-    @Autowired
-    private LocationRepository locationRepository;
 
     @Transactional(readOnly = true)
     public List<Item> getAllItems() {
@@ -45,40 +32,28 @@ public class ItemService {
 
     @Transactional(readOnly = true)
     public List<Item> getItemsByUserId(Integer userId) {
-        return itemRepository.findByPostUserUserId(userId);
+        return itemRepository.findByUserUserId(userId);
     }
 
     @Transactional(readOnly = true)
-    public List<Item> getItemsByCategory(Integer categoryId) {
-        return itemRepository.findByCategoryCategoryId(categoryId);
+    public List<Item> getItemsByCategory(String category) {
+        return itemRepository.findByCategory(category);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Item> getItemsByLocation(String location) {
+        return itemRepository.findByLocation(location);
     }
 
     @Transactional
     public Item createItem(Item item) {
-        // Set up Category and Location relationships if IDs are provided
-        if (item.getCategory() != null && item.getCategory().getCategoryId() != null) {
-            item.setCategory(categoryRepository.findById(item.getCategory().getCategoryId())
-                .orElseThrow(() -> new RuntimeException("Category not found with id: " + item.getCategory().getCategoryId())));
+        // Ensure user relationship is properly set
+        if (item.getUser() != null && item.getUser().getUserId() != null) {
+            User user = userRepository.findById(item.getUser().getUserId())
+                .orElseThrow(() -> new RuntimeException("User not found with id: " + item.getUser().getUserId()));
+            item.setUser(user);
         }
         
-        if (item.getLocation() != null && item.getLocation().getLocationId() != null) {
-            item.setLocation(locationRepository.findById(item.getLocation().getLocationId())
-                .orElseThrow(() -> new RuntimeException("Location not found with id: " + item.getLocation().getLocationId())));
-        }
-        
-        // If item has a post, ensure the post is saved first with proper user relationship
-        if (item.getPost() != null) {
-            Post post = item.getPost();
-            // Set the user relationship if user is provided
-            if (post.getUser() != null && post.getUser().getUserId() != null) {
-                User user = userRepository.findById(post.getUser().getUserId())
-                    .orElseThrow(() -> new RuntimeException("User not found with id: " + post.getUser().getUserId()));
-                post.setUser(user);
-            }
-            // Save the post first to get the postId
-            Post savedPost = postRepository.save(post);
-            item.setPost(savedPost);
-        }
         return itemRepository.save(item);
     }
 
@@ -94,6 +69,13 @@ public class ItemService {
         item.setCategory(itemDetails.getCategory());
         item.setLocation(itemDetails.getLocation());
         item.setStatus(itemDetails.getStatus());
+        item.setPhone(itemDetails.getPhone());
+        item.setSwapWith(itemDetails.getSwapWith());
+        item.setDepartment(itemDetails.getDepartment());
+        
+        if (itemDetails.getImageData() != null) {
+            item.setImageData(itemDetails.getImageData());
+        }
         
         return itemRepository.save(item);
     }
@@ -111,5 +93,9 @@ public class ItemService {
             .orElseThrow(() -> new RuntimeException("Item not found with id: " + id));
         item.setStatus("exchanged");
         return itemRepository.save(item);
+    }
+
+    public List<Item> getItemsByStatus(String status) {
+        return itemRepository.findByStatus(status);
     }
 }

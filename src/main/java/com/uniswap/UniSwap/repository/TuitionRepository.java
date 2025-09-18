@@ -10,9 +10,9 @@ import java.util.List;
 
 @Repository
 public interface TuitionRepository extends JpaRepository<Tuition, Integer> {
-    List<Tuition> findByPostPostId(Integer postId);
-    List<Tuition> findByLocationLocationId(Integer locationId);
+    List<Tuition> findByLocation(String location);
     List<Tuition> findBySubject(String subject);
+    List<Tuition> findByUserUserId(Integer userId);
 
     @Query("SELECT t FROM Tuition t WHERE t.tStatus = :status")
     List<Tuition> findByTStatus(@Param("status") String status);

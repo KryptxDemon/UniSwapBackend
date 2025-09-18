@@ -5,12 +5,10 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "Item")
@@ -23,62 +21,55 @@ public class Item {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer itemId;
 
-    @Column(length = 100)
+    @Column(length = 100, nullable = false)
     private String itemName;
 
-    @Column(columnDefinition = "TEXT")
+    @Column(columnDefinition = "TEXT", nullable = false)
     private String description;
 
-    @Column(length = 50)
-    private String itemType;
+    @Column(length = 50, nullable = false)
+    private String itemType; // swap, sell, buy
 
+    @Column(nullable = false)
     private LocalDate postDate;
 
-    @Column(length = 50)
-    private String itemCondition;
+    @Column(length = 50, nullable = false)
+    private String itemCondition; // good, fair, excellent, etc.
 
-    @Column(length = 50)
-    private String status;
+    @Column(length = 50, nullable = false)
+    private String status; // available, exchanged, etc.
 
-    @Column(length = 20)
+    @Column(length = 20, nullable = false)
     private String phone;
 
     @Column(length = 200)
-    private String swapWith;
+    private String swapWith; // only for swap items
 
     @Column(length = 100)
-    private String department;
+    private String department; // CSE, EEE, etc.
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "location_id")
-    private Location location;
+    // Store just the filename (e.g., "20250916_123456_abcd1234.jpg")
+    @Column(length = 500)
+    private String imageData;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "category_id")
-    private Category category;
+    @Column
+    private LocalDateTime createdAt;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id")
-    private Post post;
+    // Basic category and location as simple strings for now
+    @Column(length = 50)
+    private String category;
 
-    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL)
-    @JsonIgnore
-    private List<SwapRequest> swapRequests = new ArrayList<>();
+    @Column(length = 100)
+    private String location;
 
-    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL)
-    @JsonIgnore
-    private List<BorrowRecord> borrowRecords = new ArrayList<>();
+    // User relationship - simplified
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id")
+    private User user;
 
-    @ManyToMany(mappedBy = "items")
-    @JsonIgnore
-    private List<Wishlist> wishlists = new ArrayList<>();
-
-    @ManyToMany
-    @JoinTable(
-            name = "Message_Concerns_Item",
-            joinColumns = @JoinColumn(name = "item_id"),
-            inverseJoinColumns = @JoinColumn(name = "message_id")
-    )
-    @JsonIgnore
-    private List<Message> messages = new ArrayList<>();
+    @PrePersist
+    void onCreate() {
+        if (createdAt == null) createdAt = LocalDateTime.now();
+        if (postDate == null) postDate = LocalDate.now();
+    }
 }

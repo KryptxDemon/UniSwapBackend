@@ -5,12 +5,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "Post")
@@ -23,33 +20,37 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer postId;
 
-    @Column(columnDefinition = "LONGTEXT")
-    private String imageUrls;
+    @Column(length = 100, nullable = false)
+    private String title;
 
-    private LocalDateTime postTime;
+    @Column(columnDefinition = "TEXT", nullable = false)
+    private String content;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @Column(length = 50, nullable = false)
+    private String postType; // item, tuition, general
+
+    @Column(nullable = false)
+    private LocalDateTime createdAt;
+
+    @Column
+    private LocalDateTime updatedAt;
+
+    // Store image file path instead of base64
+    @Column(length = 500)
+    private String imageData;
+
+    // User relationship
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "user_id")
     private User user;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "admin_id")
-    private Admin admin;
-
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
-    @JsonIgnore
-    private List<Item> items = new ArrayList<>();
-
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
-    @JsonIgnore
-    private List<Tuition> tuitions = new ArrayList<>();
-
-    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
-    @JsonIgnore
-    private List<SwapRequest> swapRequests = new ArrayList<>();
-
     @PrePersist
     void onCreate() {
-        if (postTime == null) postTime = LocalDateTime.now();
+        if (createdAt == null) createdAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }

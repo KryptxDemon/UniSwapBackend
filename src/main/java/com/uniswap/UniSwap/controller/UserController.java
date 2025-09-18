@@ -10,6 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/users")
@@ -88,5 +89,69 @@ public class UserController {
         return userService.getUserByEmail(email)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @PostMapping("/{id}/change-password")
+    public ResponseEntity<String> changePassword(@PathVariable Integer id, @RequestBody Map<String, String> passwords, Authentication auth) {
+        // Check if user is authenticated
+        if (auth == null || auth.getName() == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not authenticated");
+        }
+        
+        try {
+            // Get the authenticated user
+            User currentUser = userService.getUserByEmail(auth.getName())
+                    .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
+            
+            // Check if the user is updating their own password
+            if (!currentUser.getUserId().equals(id)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Cannot change another user's password");
+            }
+            
+            String oldPassword = passwords.get("oldPassword");
+            String newPassword = passwords.get("newPassword");
+            
+            if (oldPassword == null || newPassword == null) {
+                return ResponseEntity.badRequest().body("Old password and new password are required");
+            }
+            
+            boolean success = userService.changePassword(id, oldPassword, newPassword);
+            if (success) {
+                return ResponseEntity.ok("Password changed successfully");
+            } else {
+                return ResponseEntity.badRequest().body("Failed to change password");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error changing password: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/{id}/request-deletion")
+    public ResponseEntity<String> requestAccountDeletion(@PathVariable Integer id, @RequestBody Map<String, String> request, Authentication auth) {
+        // Check if user is authenticated
+        if (auth == null || auth.getName() == null) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Not authenticated");
+        }
+        
+        try {
+            // Get the authenticated user
+            User currentUser = userService.getUserByEmail(auth.getName())
+                    .orElseThrow(() -> new RuntimeException("Authenticated user not found"));
+            
+            // Check if the user is requesting deletion of their own account
+            if (!currentUser.getUserId().equals(id)) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN).body("Cannot request deletion for another user's account");
+            }
+            
+            String reason = request.get("reason");
+            if (reason == null || reason.trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Reason for deletion is required");
+            }
+            
+            userService.requestAccountDeletion(id, reason);
+            return ResponseEntity.ok("Account deletion request submitted successfully");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error submitting deletion request: " + e.getMessage());
+        }
     }
 }

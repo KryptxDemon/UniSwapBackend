@@ -7,10 +7,10 @@ import java.util.List;
 
 @Repository
 public interface ItemRepository extends JpaRepository<Item, Integer> {
-    List<Item> findByCategoryCategoryId(Integer categoryId);
-    List<Item> findByLocationLocationId(Integer locationId);
-    List<Item> findByPostPostId(Integer postId);
+    List<Item> findByCategory(String category);
+    List<Item> findByLocation(String location);
     List<Item> findByItemType(String itemType);
     List<Item> findByStatus(String status);
-    List<Item> findByPostUserUserId(Integer userId);
+    List<Item> findByUserUserId(Integer userId);
+    List<Item> findByDepartment(String department);
 }

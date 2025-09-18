@@ -48,9 +48,9 @@ public class TuitionController {
         return ResponseEntity.ok(tuitions);
     }
 
-    @GetMapping("/location/{locationId}")
-    public ResponseEntity<List<Tuition>> getTuitionsByLocation(@PathVariable Integer locationId) {
-        List<Tuition> tuitions = tuitionService.getTuitionsByLocation(locationId);
+    @GetMapping("/location/{location}")
+    public ResponseEntity<List<Tuition>> getTuitionsByLocation(@PathVariable String location) {
+        List<Tuition> tuitions = tuitionService.getTuitionsByLocation(location);
         return ResponseEntity.ok(tuitions);
     }
 

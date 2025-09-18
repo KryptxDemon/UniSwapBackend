@@ -36,7 +36,7 @@ public class User implements UserDetails {
     @Column(length = 500)
     private String bio;
 
-    @Column(columnDefinition = "LONGTEXT")
+    @Column(length = 500)
     private String profilePicture;
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)

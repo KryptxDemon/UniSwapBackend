@@ -22,8 +22,6 @@ public class AdminController {
     @Autowired private PostRepository postRepository;
     @Autowired private PhoneRepository phoneRepository;
     @Autowired private UserRepository userRepository;
-    @Autowired private LocationRepository locationRepository;
-    @Autowired private CategoryRepository categoryRepository;
 
     @DeleteMapping("/reset")
     @Transactional

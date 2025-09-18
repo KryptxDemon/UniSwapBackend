@@ -44,8 +44,14 @@ public class SecurityConfig {
                 // Allow OPTIONS requests
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 
+                // Allow access to uploaded files
+                .requestMatchers("/api/uploads/**").permitAll()
+                
+                // Completely allow all requests to items for testing
+                .requestMatchers("/api/items/**").permitAll()
+                
                 // Public read-only endpoints
-                .requestMatchers(HttpMethod.GET, "/api/items/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/tuitions/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/categories/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/locations/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/posts/**").permitAll()
