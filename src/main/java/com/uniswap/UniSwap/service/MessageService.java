@@ -46,8 +46,19 @@ public class MessageService {
     public Message markAsRead(Integer id) {
         Message message = messageRepository.findById(id)
             .orElseThrow(() -> new RuntimeException("Message not found with id: " + id));
-        // Add read status field to Message entity if needed
+        message.setIsRead(true);
+        message.setReadTime(LocalDateTime.now());
         return messageRepository.save(message);
+    }
+
+    @Transactional
+    public void markMessagesAsRead(Integer receiverId, Integer senderId) {
+        List<Message> unreadMessages = messageRepository.findUnreadMessages(receiverId, senderId);
+        for (Message message : unreadMessages) {
+            message.setIsRead(true);
+            message.setReadTime(LocalDateTime.now());
+        }
+        messageRepository.saveAll(unreadMessages);
     }
 
     @Transactional

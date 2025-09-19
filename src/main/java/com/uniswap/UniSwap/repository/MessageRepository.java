@@ -18,4 +18,7 @@ public interface MessageRepository extends JpaRepository<Message, Integer> {
 
     @Query("SELECT m FROM Message m WHERE m.sender.userId = :userId OR m.receiver.userId = :userId2 ORDER BY m.sentTime DESC")
     List<Message> findBySenderUserIdOrReceiverUserId(@Param("userId") Integer userId, @Param("userId2") Integer userId2);
+
+    @Query("SELECT m FROM Message m WHERE m.receiver.userId = :receiverId AND m.sender.userId = :senderId AND m.isRead = false")
+    List<Message> findUnreadMessages(@Param("receiverId") Integer receiverId, @Param("senderId") Integer senderId);
 }

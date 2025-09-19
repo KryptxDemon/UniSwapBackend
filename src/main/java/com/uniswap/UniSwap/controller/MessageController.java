@@ -61,7 +61,12 @@ public class MessageController {
                     conversation.setLastMessage(lastMessage != null ? lastMessage.getText() : "");
                     conversation.setLastMessageTime(lastMessage != null ? lastMessage.getSentTime() : null);
                     conversation.setMessageCount(messages.size());
-                    conversation.setUnreadCount(0); // TODO: Implement read status
+                    
+                    // Calculate unread count (messages from partner that are not read)
+                    Integer unreadCount = (int) messages.stream()
+                        .filter(msg -> msg.getReceiver().getUserId().equals(userId) && !msg.getIsRead())
+                        .count();
+                    conversation.setUnreadCount(unreadCount);
 
                     return conversation;
                 })
@@ -163,12 +168,40 @@ public class MessageController {
         }
     }
 
+    @PutMapping("/mark-read/{conversationPartnerId}")
+    public ResponseEntity<Void> markMessagesAsRead(
+            @PathVariable Integer conversationPartnerId, 
+            Authentication auth) {
+        try {
+            // Verify authentication
+            if (auth == null || auth.getName() == null) {
+                return ResponseEntity.status(401).build();
+            }
+
+            // Get current user
+            String userEmail = auth.getName();
+            User currentUser = userService.getUserByEmail(userEmail)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Mark all messages from the conversation partner as read
+            messageService.markMessagesAsRead(currentUser.getUserId(), conversationPartnerId);
+            
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            System.err.println("Error marking messages as read: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest().build();
+        }
+    }
+
     // Helper method to convert Message entity to DTO
     private MessageDTO convertToDTO(Message message) {
         MessageDTO dto = new MessageDTO();
         dto.setMessageId(message.getMessageId());
         dto.setText(message.getText());
         dto.setSentTime(message.getSentTime());
+        dto.setIsRead(message.getIsRead());
+        dto.setReadTime(message.getReadTime());
         
         // Convert sender
         MessageDTO.UserSummaryDTO senderDTO = new MessageDTO.UserSummaryDTO();

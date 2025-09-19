@@ -41,6 +41,12 @@ public class Message {
     @Column
     private Integer concernId; // ID of the item/tuition being discussed
 
+    @Column(nullable = false)
+    private Boolean isRead = false;
+
+    @Column
+    private LocalDateTime readTime;
+
     @PrePersist
     void onCreate() {
         if (sentTime == null) sentTime = LocalDateTime.now();

@@ -15,6 +15,8 @@ public class MessageDTO {
     private LocalDateTime sentTime;
     private UserSummaryDTO sender;
     private UserSummaryDTO receiver;
+    private Boolean isRead;
+    private LocalDateTime readTime;
     
     @Data
     @NoArgsConstructor
